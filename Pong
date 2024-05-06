@@ -1,0 +1,131 @@
+let ball;
+let leftPaddle;
+let rightPaddle;
+let leftScore = 0;
+let rightScore = 0;
+
+function setup() {
+  createCanvas(600, 400);
+  ball = new Ball();
+  leftPaddle = new Paddle(true);
+  rightPaddle = new Paddle(false);
+}
+
+function draw() {
+  background(0);
+  
+  // Draw the paddles
+  leftPaddle.show();
+  rightPaddle.show();
+  
+  // Move the paddles
+  leftPaddle.update();
+  rightPaddle.update();
+  
+  // Draw the ball
+  ball.show();
+  ball.update();
+  
+  // Check for collisions with paddles
+  ball.checkPaddleCollision(leftPaddle);
+  ball.checkPaddleCollision(rightPaddle);
+  
+  // Check for scoring
+  if (ball.isOffScreen()) {
+    if (ball.x < 0) {
+      rightScore++;
+    } else {
+      leftScore++;
+    }
+    ball.reset();
+  }
+  
+  // Display scores
+  textAlign(CENTER);
+  textSize(32);
+  fill(255);
+  text(leftScore, width / 4, 50);
+  text(rightScore, width * 3 / 4, 50);
+}
+
+class Ball {
+  constructor() {
+    this.x = width / 2;
+    this.y = height / 2;
+    this.xSpeed = 5;
+    this.ySpeed = 5;
+    this.radius = 10;
+  }
+  
+  show() {
+    fill(255);
+    ellipse(this.x, this.y, this.radius * 2);
+  }
+  
+  update() {
+    this.x += this.xSpeed;
+    this.y += this.ySpeed;
+    
+    // Check for wall collisions
+    if (this.y < 0 || this.y > height) {
+      this.ySpeed *= -1;
+    }
+  }
+  
+  checkPaddleCollision(paddle) {
+    if (this.x - this.radius < paddle.x + paddle.width / 2 &&
+        this.x + this.radius > paddle.x - paddle.width / 2 &&
+        this.y + this.radius > paddle.y - paddle.height / 2 &&
+        this.y - this.radius < paddle.y + paddle.height / 2) {
+      this.xSpeed *= -1;
+    }
+  }
+  
+  isOffScreen() {
+    return (this.x < 0 || this.x > width);
+  }
+  
+  reset() {
+    this.x = width / 2;
+    this.y = height / 2;
+    this.xSpeed *= -1;
+    this.ySpeed *= random([-1, 1]);
+  }
+}
+
+class Paddle {
+  constructor(isLeft) {
+    this.isLeft = isLeft;
+    this.width = 10;
+    this.height = 80;
+    this.y = height / 2;
+    this.x = this.isLeft ? this.width : width - this.width;
+    this.speed = 10;
+  }
+  
+  show() {
+    fill(255);
+    rectMode(CENTER);
+    rect(this.x, this.y, this.width, this.height);
+  }
+  
+  update() {
+    if (this.isLeft) {
+      if (keyIsDown(87)) { // w key
+        this.y -= this.speed;
+      }
+      if (keyIsDown(83)) { // s key
+        this.y += this.speed;
+      }
+    } else {
+      if (keyIsDown(UP_ARROW)) {
+        this.y -= this.speed;
+      }
+      if (keyIsDown(DOWN_ARROW)) {
+        this.y += this.speed;
+      }
+    }
+    
+    this.y = constrain(this.y, this.height / 2, height - this.height / 2);
+  }
+}
